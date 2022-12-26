@@ -13,8 +13,12 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# resource "aws_key_pair" "wk20kp" {
+#   key_name = "wk20kp"
+#   public_key = ""
+# }
 #3-VPC info
-resource "aws_default_vpc" "default" {
+resource "aws_default_vpc" "defaultVPC" {
   tags = {
     Name = "defaultVPC"
   }
@@ -48,8 +52,8 @@ resource "aws_default_subnet" "default_az3" {
     Name = "Default subnet for us-east-1c"
   }
 }
-resource "aws_default_route_table" "project" {
-  default_route_table_id = aws_default_vpc.default.default_route_table_id
+resource "aws_default_route_table" "mainRT" {
+  default_route_table_id = aws_default_vpc.defaultVPC.default_route_table_id
 
   route {
     cidr_block = "10.0.1.0/24"
@@ -60,7 +64,7 @@ resource "aws_default_route_table" "project" {
   }
 }
 resource "aws_default_security_group" "default" {
-  vpc_id = aws_default_vpc.default.id
+  vpc_id = aws_default_vpc.defaultVPC.id
 
   ingress {
     protocol  = -1
@@ -82,25 +86,36 @@ resource "aws_default_security_group" "default" {
 resource "aws_security_group" "nginx_sg" {
   name        = "web_sg"
   description = "Enable HTTP access to ec2 instances"
-  vpc_id      = aws_default_vpc.default.id
+  vpc_id      = aws_default_vpc.defaultVPC.id
 
   ingress {
-    from_port = 22
-    to_port   = 22
-    protocol  = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port = 80
-    to_port   = 80
-    protocol  = "-1"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
+}
+# Application Load Balancer--Internet facing
+resource "aws_alb" "alb" {
+  name               = "alb"
+  load_balancer_type = "application"
+  internal           = false
+  subnets            = [aws_default_subnet.default_az1.id, aws_default_subnet.default_az2.id, aws_default_subnet.default_az3.id]
+  security_groups    = [aws_default_security_group.default.id]
 }
 resource "aws_instance" "my-webserver1" {
   ami             = "ami-09fe851c8e75cbbf8"
