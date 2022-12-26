@@ -21,11 +21,11 @@ resource "aws_default_vpc" "default" {
 }
 #Internet Gateway (IG) which will allow us to reach the internet. 
 #--Will be put into the main route table.
-resource "aws_internet_gateway" "ig_project" {
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_default_vpc.defaultVPC.id
   tags = {
-    Name = "ig_project"
+    Name = "igw"
   }
-  vpc_id = aws_default_vpc.default.id
 }
 resource "aws_default_subnet" "default_az1" {
   availability_zone = "us-east-1a"
@@ -35,14 +35,14 @@ resource "aws_default_subnet" "default_az1" {
   }
 }
 resource "aws_default_subnet" "default_az2" {
-  availability_zone = "us-east-1a"
+  availability_zone = "us-east-1b"
 
   tags = {
     Name = "Default subnet for us-east-1b"
   }
 }
 resource "aws_default_subnet" "default_az3" {
-  availability_zone = "us-east-1a"
+  availability_zone = "us-east-1c"
 
   tags = {
     Name = "Default subnet for us-east-1c"
@@ -53,10 +53,10 @@ resource "aws_default_route_table" "project" {
 
   route {
     cidr_block = "10.0.1.0/24"
-    gateway_id = aws_internet_gateway.ig_project.id
+    gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
-    Name = "project"
+    Name = "igw"
   }
 }
 resource "aws_default_security_group" "default" {
