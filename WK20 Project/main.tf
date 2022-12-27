@@ -23,33 +23,59 @@ resource "aws_default_vpc" "defaultVPC" {
     Name = "defaultVPC"
   }
 }
+
+resource "aws_subnet" "public_subnet1a" {
+  vpc_id                  = aws_default_vpc.defaultVPC.id
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "Public subnet for us-east-1a"
+  }
+}
+resource "aws_subnet" "public_subnet1b" {
+  vpc_id                  = aws_default_vpc.defaultVPC.id
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "Public subnet for us-east-1b"
+  }
+}
+resource "aws_subnet" "public_subnet1c" {
+  vpc_id                  = aws_default_vpc.defaultVPC.id
+  availability_zone       = "us-east-1c"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "Public subnet for us-east-1c"
+  }
+}
+resource "aws_subnet" "private_subnet1a" {
+  vpc_id                  = aws_default_vpc.defaultVPC.id
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
+  tags = {
+    Name = "Private subnet for us-east-1a"
+  }
+}
+resource "aws_subnet" "private_subnet1b" {
+  vpc_id            = aws_default_vpc.defaultVPC.id
+  availability_zone = "us-east-1b"
+  tags = {
+    Name = "Private subnet for us-east-1b"
+  }
+}
+resource "aws_subnet" "private_subnet1c" {
+  vpc_id            = aws_default_vpc.defaultVPC.id
+  availability_zone = "us-east-1c"
+  tags = {
+    Name = "Private subnet for us-east-1c"
+  }
+}
 #Internet Gateway (IG) which will allow us to reach the internet. 
 #--Will be put into the main route table.
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_default_vpc.defaultVPC.id
   tags = {
     Name = "igw"
-  }
-}
-resource "aws_default_subnet" "default_az1" {
-  availability_zone = "us-east-1a"
-
-  tags = {
-    Name = "Default subnet for us-east-1a"
-  }
-}
-resource "aws_default_subnet" "default_az2" {
-  availability_zone = "us-east-1b"
-
-  tags = {
-    Name = "Default subnet for us-east-1b"
-  }
-}
-resource "aws_default_subnet" "default_az3" {
-  availability_zone = "us-east-1c"
-
-  tags = {
-    Name = "Default subnet for us-east-1c"
   }
 }
 resource "aws_default_route_table" "mainRT" {
@@ -114,13 +140,13 @@ resource "aws_alb" "alb" {
   name               = "alb"
   load_balancer_type = "application"
   internal           = false
-  subnets            = [aws_default_subnet.default_az1.id, aws_default_subnet.default_az2.id, aws_default_subnet.default_az3.id]
+  subnets            = [aws_subnet.public_subnet1a.id, aws_subnet.public_subnet1b.id, aws_subnet.public_subnet1c.id]
   security_groups    = [aws_default_security_group.default.id]
 }
 resource "aws_instance" "my-webserver1" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
-  subnet_id       = aws_default_subnet.default_az1.id
+  subnet_id       = aws_subnet.public_subnet1a.id
   security_groups = [aws_security_group.nginx_sg.id]
 
   user_data = <<-EOF
@@ -136,7 +162,7 @@ resource "aws_instance" "my-webserver1" {
 resource "aws_instance" "my-webserver2" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
-  subnet_id       = aws_default_subnet.default_az2.id
+  subnet_id       = aws_subnet.public_subnet1b.id
   security_groups = [aws_security_group.nginx_sg.id]
 
   user_data = <<-EOF
@@ -151,7 +177,7 @@ resource "aws_instance" "my-webserver2" {
 resource "aws_instance" "my-webserver3" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
-  subnet_id       = aws_default_subnet.default_az3.id
+  subnet_id       = aws_subnet.public_subnet1c.id
   security_groups = [aws_security_group.nginx_sg.id]
 
   user_data = <<-EOF

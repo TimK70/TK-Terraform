@@ -342,3 +342,4 @@ output "PublicIP2" {
 output "ALB_DNS" {
   description = "The ALBs DNS"
   value       = aws_lb.project_lb.dns_name
+}
