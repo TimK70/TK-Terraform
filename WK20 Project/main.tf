@@ -13,10 +13,10 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# resource "aws_key_pair" "wk20kp" {
-#   key_name = "wk20kp"
-#   public_key = ""
-# }
+resource "aws_key_pair" "wk20kp" {
+  key_name = "wk20kp"
+  public_key = ""
+}
 #3-VPC info
 resource "aws_default_vpc" "defaultVPC" {
   tags = {
