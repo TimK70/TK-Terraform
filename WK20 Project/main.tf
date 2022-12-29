@@ -1,73 +1,28 @@
+# ------/root/main.tf-----------------
+
 #1-Providers section:
 terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "4.48.0"
+      version = "4.24.0"
     }
   }
 }
 #2-This will be our default region. If you're using an IDE other than Cloud9, you will
 # put your access_key and secret_key here, below region =.
 provider "aws" {
-  region = "us-east-1"
+  region = "us-east-2"
 }
 
-resource "aws_key_pair" "wk20kp" {
-  key_name = "wk20kp"
-  public_key = ""
-}
+# resource "aws_key_pair" "wk20kp" {
+#   key_name = "wk20kp"
+#   public_key = ""
+# }
 #3-VPC info
 resource "aws_default_vpc" "defaultVPC" {
   tags = {
-    Name = "defaultVPC"
-  }
-}
-
-resource "aws_subnet" "public_subnet1a" {
-  vpc_id                  = aws_default_vpc.defaultVPC.id
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
-  tags = {
-    Name = "Public subnet for us-east-1a"
-  }
-}
-resource "aws_subnet" "public_subnet1b" {
-  vpc_id                  = aws_default_vpc.defaultVPC.id
-  availability_zone       = "us-east-1b"
-  map_public_ip_on_launch = true
-  tags = {
     Name = "Public subnet for us-east-1b"
-  }
-}
-resource "aws_subnet" "public_subnet1c" {
-  vpc_id                  = aws_default_vpc.defaultVPC.id
-  availability_zone       = "us-east-1c"
-  map_public_ip_on_launch = true
-  tags = {
-    Name = "Public subnet for us-east-1c"
-  }
-}
-resource "aws_subnet" "private_subnet1a" {
-  vpc_id                  = aws_default_vpc.defaultVPC.id
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
-  tags = {
-    Name = "Private subnet for us-east-1a"
-  }
-}
-resource "aws_subnet" "private_subnet1b" {
-  vpc_id            = aws_default_vpc.defaultVPC.id
-  availability_zone = "us-east-1b"
-  tags = {
-    Name = "Private subnet for us-east-1b"
-  }
-}
-resource "aws_subnet" "private_subnet1c" {
-  vpc_id            = aws_default_vpc.defaultVPC.id
-  availability_zone = "us-east-1c"
-  tags = {
-    Name = "Private subnet for us-east-1c"
   }
 }
 #Internet Gateway (IG) which will allow us to reach the internet. 
@@ -75,44 +30,86 @@ resource "aws_subnet" "private_subnet1c" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_default_vpc.defaultVPC.id
   tags = {
-    Name = "igw"
+    Name = "Public subnet for us-east-1c"
   }
 }
+resource "aws_default_subnet" "default_az1" {
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "Private subnet for us-east-1a"
+  }
+}
+resource "aws_default_subnet" "default_az2" {
+  availability_zone = "us-east-1b"
+
+  tags = {
+    Name = "Private subnet for us-east-1b"
+  }
+}
+resource "aws_default_subnet" "default_az3" {
+  availability_zone = "us-east-1c"
+
+  tags = {
+    Name = "Default subnet for us-east-1c"
+  }
+}
+#Listing the default route table, so it won't have any associations
 resource "aws_default_route_table" "mainRT" {
-  default_route_table_id = aws_default_vpc.defaultVPC.default_route_table_id
+  default_route_table_id = aws_default_vpc.defaultvpc.default_route_table_id
+}
+#public Route Table to go with the public subnets
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_default_vpc.defaultvpc.id
 
   route {
-    cidr_block = "10.0.1.0/24"
-    gateway_id = aws_internet_gateway.igw.id
+    cidr_block = "0.0.0.0/0" #Need it to be this so we can reach the Internet
+    gateway_id = aws_internet_gateway.project_gw.id
   }
   tags = {
-    Name = "igw"
+    Name = "Second Route Table"
   }
 }
-resource "aws_default_security_group" "default" {
-  vpc_id = aws_default_vpc.defaultVPC.id
-
-  ingress {
-    protocol  = -1
-    self      = true
-    from_port = 0
-    to_port   = 0
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+#Here, we will pair up our Public Rout Table to our Public Subnets
+resource "aws_route_table_association" "public_route1a" {
+  subnet_id      = aws_subnet.public_subnet1a.id
+  route_table_id = aws_route_table.public_rt
+}
+resource "aws_route_table_association" "public_route1b" {
+  subnet_id      = aws_subnet.public_subnet1b.id
+  route_table_id = aws_route_table.public_rt
+}
+resource "aws_route_table_association" "public_route1c" {
+  subnet_id      = aws_subnet.public_subnet1c.id
+  route_table_id = aws_route_table.public_rt
 }
 
-#
+#Next, we'll make a RT for the Private Subnets:
+resource "aws_route_table" "private_rt" {
+  vpc_id = aws_default_vpc.defaultvpc.id
+
+  tags = {
+    Name = "private_rt"
+  }
+}
+#Next, we will pair our private subnets to the Private RT:
+resource "aws_route_table_association" "private_route1a" {
+  subnet_id      = aws_subnet.public_subnet1a.id
+  route_table_id = aws_route_table.private_rt
+}
+resource "aws_route_table_association" "private_route1b" {
+  subnet_id      = aws_subnet.public_subnet1b.id
+  route_table_id = aws_route_table.private_rt
+}
+resource "aws_route_table_association" "private_route1c" {
+  subnet_id      = aws_subnet.public_subnet1c.id
+  route_table_id = aws_route_table.private_rt
+}
+
 #7-Security group that will allow all traffic to webservers on port 80 & ssh from our IP:
-resource "aws_security_group" "nginx_sg" {
-  name        = "web_sg"
+resource "aws_security_group" "HTTP_sg" {
+  name        = "HTTP_sg"
   description = "Enable HTTP access to ec2 instances"
-  vpc_id      = aws_default_vpc.defaultVPC.id
 
   ingress {
     from_port   = 22
@@ -135,18 +132,19 @@ resource "aws_security_group" "nginx_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
 # Application Load Balancer--Internet facing
 resource "aws_alb" "alb" {
   name               = "alb"
   load_balancer_type = "application"
   internal           = false
-  subnets            = [aws_subnet.public_subnet1a.id, aws_subnet.public_subnet1b.id, aws_subnet.public_subnet1c.id]
+  subnets            = [aws_default_subnet.default_az1.id, aws_default_subnet.default_az2.id, aws_default_subnet.default_az3.id]
   security_groups    = [aws_default_security_group.default.id]
 }
 resource "aws_instance" "my-webserver1" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
-  subnet_id       = aws_subnet.public_subnet1a.id
+  subnet_id       = aws_default_subnet.default_az1.id
   security_groups = [aws_security_group.nginx_sg.id]
 
   user_data = <<-EOF
@@ -162,7 +160,7 @@ resource "aws_instance" "my-webserver1" {
 resource "aws_instance" "my-webserver2" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
-  subnet_id       = aws_subnet.public_subnet1b.id
+  subnet_id       = aws_default_subnet.default_az2.id
   security_groups = [aws_security_group.nginx_sg.id]
 
   user_data = <<-EOF
@@ -177,7 +175,7 @@ resource "aws_instance" "my-webserver2" {
 resource "aws_instance" "my-webserver3" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
-  subnet_id       = aws_subnet.public_subnet1c.id
+  subnet_id       = aws_default_subnet.default_az3.id
   security_groups = [aws_security_group.nginx_sg.id]
 
   user_data = <<-EOF
