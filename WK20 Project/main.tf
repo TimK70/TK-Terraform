@@ -56,15 +56,15 @@ resource "aws_default_subnet" "default_az3" {
 }
 #Listing the default route table, so it won't have any associations
 resource "aws_default_route_table" "mainRT" {
-  default_route_table_id = aws_default_vpc.defaultvpc.default_route_table_id
+  default_route_table_id = aws_default_vpc.defaultVPC.default_route_table_id
 }
 #public Route Table to go with the public subnets
 resource "aws_route_table" "public_rt" {
-  vpc_id = aws_default_vpc.defaultvpc.id
+  vpc_id = aws_default_vpc.defaultVPC.id
 
   route {
     cidr_block = "0.0.0.0/0" #Need it to be this so we can reach the Internet
-    gateway_id = aws_internet_gateway.project_gw.id
+    gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
     Name = "Second Route Table"
@@ -86,7 +86,7 @@ resource "aws_route_table_association" "public_route1c" {
 
 #Next, we'll make a RT for the Private Subnets:
 resource "aws_route_table" "private_rt" {
-  vpc_id = aws_default_vpc.defaultvpc.id
+  vpc_id = aws_default_vpc.defaultVPC.id
 
   tags = {
     Name = "private_rt"
@@ -139,13 +139,12 @@ resource "aws_alb" "alb" {
   load_balancer_type = "application"
   internal           = false
   subnets            = [aws_default_subnet.default_az1.id, aws_default_subnet.default_az2.id, aws_default_subnet.default_az3.id]
-  security_groups    = [aws_default_security_group.default.id]
 }
 resource "aws_instance" "my-webserver1" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
   subnet_id       = aws_default_subnet.default_az1.id
-  security_groups = [aws_security_group.nginx_sg.id]
+  security_groups = [aws_security_group.HTTP_sg.id]
 
   user_data = <<-EOF
     "#!/bin/bash
@@ -161,7 +160,7 @@ resource "aws_instance" "my-webserver2" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
   subnet_id       = aws_default_subnet.default_az2.id
-  security_groups = [aws_security_group.nginx_sg.id]
+  security_groups = [aws_security_group.HTTP_sg.id]
 
   user_data = <<-EOF
     "#!/bin/bash
@@ -176,7 +175,7 @@ resource "aws_instance" "my-webserver3" {
   ami             = "ami-09fe851c8e75cbbf8"
   instance_type   = "t2.micro"
   subnet_id       = aws_default_subnet.default_az3.id
-  security_groups = [aws_security_group.nginx_sg.id]
+  security_groups = [aws_security_group.HTTP_sg.id]
 
   user_data = <<-EOF
     "#!/bin/bash
