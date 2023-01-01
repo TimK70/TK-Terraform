@@ -130,7 +130,11 @@ resource "aws_instance" "webserver1" {
     yum -y install httpd
     systemctl start httpd
     systemctl enable httpd
-    echo ""<h2>My Apache Webserver</h2><br>Built by Terraform" > /var/www/html/index.html"
+    echo '<!DOCTYPE html>' > /var/www/html/index.html
+    echo '<html lang="en">' >> /var/www/html/index.html
+    # echo '<head><title>Welcome to Green Team!</title></head>'  >> /var/www/html/index.html
+    # echo '<body style="background-color:dark green;">' >> /var/www/html/index.html
+    echo '<h1 style="color:black;">This is my Apache Webserver.</h1>' >> /var/www/html/index.html
     EOF
 }
 
@@ -147,7 +151,11 @@ resource "aws_instance" "webserver2" {
     yum -y install httpd
     systemctl start httpd
     systemctl enable httpd
-    echo ""<h2>My Apache Webserver</h2><br>Built by Terraform" > /var/www/html/index.html"
+    echo '<!DOCTYPE html>' > /var/www/html/index.html
+    echo '<html lang="en">' >> /var/www/html/index.html
+    # echo '<head><title>Welcome to Green Team!</title></head>'  >> /var/www/html/index.html
+    # echo '<body style="background-color:dark green;">' >> /var/www/html/index.html
+    echo '<h1 style="color:black;">This is my Apache Webserver.</h1>' >> /var/www/html/index.html
     EOF
 }
 
@@ -164,7 +172,11 @@ resource "aws_instance" "webserver3" {
     yum -y install httpd
     systemctl start httpd
     systemctl enable httpd
-    echo ""<h2>My Apache Webserver</h2><br>Built by Terraform" > /var/www/html/index.html"
+    echo '<!DOCTYPE html>' > /var/www/html/index.html
+    echo '<html lang="en">' >> /var/www/html/index.html
+    # echo '<head><title>Welcome to Green Team!</title></head>'  >> /var/www/html/index.html
+    # echo '<body style="background-color:dark green;">' >> /var/www/html/index.html
+    echo '<h1 style="color:black;">This is my Apache Webserver.</h1>' >> /var/www/html/index.html
     EOF
 }
 
