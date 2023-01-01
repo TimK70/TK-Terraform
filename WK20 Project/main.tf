@@ -96,6 +96,7 @@ resource "aws_security_group" "HTTP_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  
   #Allow incoming HTTP
   ingress {
     from_port   = 80
