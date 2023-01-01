@@ -16,7 +16,7 @@ provider "aws" {
 }
 #Key pair information
 # resource "aws_key_pair" "TF_project" {
-#   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCLoyH6wDNkA2pMkvXkzWRz/WJvnuwrXWFBDXdSJ+pt+IHyv65Ost2l58JEu3SAKGFDvKVHzahpLPRK0hkaW9l62MfpfKKyk5nfdHTlzwzIxukJwgYZeQB/bGOeM1eKTe22aPPlSVQW1D/MLMwvxO9ZErfguM7Gtw9Ev+MWOV0dPif+XLT7LsC11s3oWv6+r3rGJ6818yZ/ut4oYXHGZoBumUBzsKK8HF5qKqCfcC5TxjrGISeROZvVKuFhZ0VY2KCk4q1hI0OO3Cl/fuq/7ED1sTc7/K/m3vK3ZWkAs4LBn/2yQMSZ+rpkymqUsabXkI7FuDXBFvcvaVYZIHWYG5bB"
+#   public_key = "ssh-rsaxxxxxxxxxxxxxxxxxxxxxxxx"
 #   key_name = "TF_project"
 #}
 
@@ -32,29 +32,32 @@ resource "aws_vpc" "defaultVPC" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.defaultVPC.id
   tags = {
-    Name = "defaultVPC_igw"
+    Name = "igw"
   }
 }
 resource "aws_subnet" "default_az1" {
-  vpc_id            = aws_vpc.defaultVPC.id
-  cidr_block        = "10.0.1.0/24"
-  availability_zone = "us-east-2a"
+  vpc_id                  = aws_vpc.defaultVPC.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-2a"
+  map_public_ip_on_launch = true
   tags = {
     Name = "subnet for us-east-2a"
   }
 }
 resource "aws_subnet" "default_az2" {
-  vpc_id            = aws_vpc.defaultVPC.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-east-2b"
+  vpc_id                  = aws_vpc.defaultVPC.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "us-east-2b"
+  map_public_ip_on_launch = true
   tags = {
     Name = "subnet for us-east-2b"
   }
 }
 resource "aws_subnet" "default_az3" {
-  vpc_id            = aws_vpc.defaultVPC.id
-  cidr_block        = "10.0.3.0/24"
-  availability_zone = "us-east-2c"
+  vpc_id                  = aws_vpc.defaultVPC.id
+  cidr_block              = "10.0.3.0/24"
+  availability_zone       = "us-east-2c"
+  map_public_ip_on_launch = true
   tags = {
     Name = "subnet for us-east-2c"
   }
@@ -66,12 +69,12 @@ resource "aws_route_table" "igw_public_rt" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
-    }
+  }
   tags = {
     Name = "Route Table"
   }
 }
-#Here, we will pair up our Public Rout Table to our Public Subnets
+#Here, we will pair up our Public Route Table to our Public Subnets
 resource "aws_route_table_association" "route2a" {
   subnet_id      = aws_subnet.default_az1.id
   route_table_id = aws_route_table.igw_public_rt.id
@@ -89,6 +92,7 @@ resource "aws_route_table_association" "public2c" {
 resource "aws_security_group" "HTTP_sg" {
   name        = "HTTP_sg"
   description = "Enable HTTP and SSH access to ec2 instances"
+  vpc_id      = aws_vpc.defaultVPC.id
   #Allow SSH access.
   ingress {
     from_port   = 22
@@ -96,7 +100,7 @@ resource "aws_security_group" "HTTP_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  
+
   #Allow incoming HTTP
   ingress {
     from_port   = 80
@@ -123,27 +127,27 @@ resource "aws_instance" "webserver1" {
   user_data = <<-EOF
     #!/bin/bash
     yum -y update
-    yum -y install nginx
-    systemctl start nginx
-    systemctl enable nginx
-    echo ""<h1>My NGINX Webserver</h1><br>Built by Terraform" > /var/www/html/index.html"
-
+    yum -y install httpd
+    systemctl start httpd
+    systemctl enable httpd
+    echo ""<h2>My Apache Webserver</h2><br>Built by Terraform" > /var/www/html/index.html"
+    EOF
 }
 
 resource "aws_instance" "webserver2" {
-  ami                         = "ami-0a606d8395a538502"
-  instance_type               = "t2.micro"
-  subnet_id                   = aws_subnet.default_az2.id
-  security_groups             = [aws_security_group.HTTP_sg.id]
-  key_name = "TF_project2"
+  ami             = "ami-0a606d8395a538502"
+  instance_type   = "t2.micro"
+  subnet_id       = aws_subnet.default_az2.id
+  security_groups = [aws_security_group.HTTP_sg.id]
+  key_name        = "TF_project2"
 
   user_data = <<-EOF
     #!/bin/bash
     yum -y update
-    yum -y install nginx
-    systemctl start nginx
-    systemctl enable nginx
-    echo ""<h1>My NGINX Webserver</h1><br>Built by Terraform" > /var/www/html/index.html"
+    yum -y install httpd
+    systemctl start httpd
+    systemctl enable httpd
+    echo ""<h2>My Apache Webserver</h2><br>Built by Terraform" > /var/www/html/index.html"
     EOF
 }
 
@@ -157,10 +161,10 @@ resource "aws_instance" "webserver3" {
   user_data = <<-EOF
     #!/bin/bash
     yum -y update
-    yum -y install nginx
-    systemctl start nginx
-    systemctl enable nginx
-    echo ""<h2>My NGINX Webserver</h2><br>Built by Terraform" > /var/www/html/index.html"
+    yum -y install httpd
+    systemctl start httpd
+    systemctl enable httpd
+    echo ""<h2>My Apache Webserver</h2><br>Built by Terraform" > /var/www/html/index.html"
     EOF
 }
 
